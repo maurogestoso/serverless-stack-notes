@@ -10,6 +10,9 @@ provider:
   tags:
     projectName: ${self:provider}
 
+custom:
+  resourcePrefix: ${self:service}-${self:provider.stage}
+
 package:
   exclude:
     - ./**
@@ -32,10 +35,25 @@ functions:
 
 resources:
   Resources:
+    UploadsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.resourcePrefix}-uploads
+        CorsConfiguration: 
+          CorsRules:
+            - 
+              AllowedHeaders: ['*']
+              AllowedMethods: [GET, PUT, POST, HEAD, DELETE]
+              AllowedOrigins: ['*']
+              MaxAge: 3000
+        Tags: 
+          - 
+            Key: projectName
+            Value: ${self:service}
     NotesTable:
       Type: AWS::DynamoDB::Table
       Properties: 
-        TableName: ${self:service}-${self:provider.stage}-notes
+        TableName: ${self:custom.resourcePrefix}-notes
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions: 
           - 
