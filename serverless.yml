@@ -73,3 +73,21 @@ resources:
           - 
             Key: projectName
             Value: ${self:service}
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties: 
+        UsernameAttributes: 
+          - email
+        UserPoolName: ${self:custom.resourcePrefix}
+    UserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ExplicitAuthFlows:
+          - ADMIN_NO_SRP_AUTH
+        GenerateSecret: false
+        UserPoolId: !Ref UserPool
+    UserPoolDomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties: 
+        Domain: "maurogestoso-notes-app"
+        UserPoolId: !Ref UserPool
