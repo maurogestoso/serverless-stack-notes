@@ -34,6 +34,11 @@ functions:
           method: get
 
 resources:
+  Outputs:
+    UserPoolId:
+      Value: !Ref UserPool
+    UserPoolClientId:
+      Value: !Ref UserPoolClient
   Resources:
     UploadsBucket:
       Type: AWS::S3::Bucket
