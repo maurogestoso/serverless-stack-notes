@@ -1,0 +1,24 @@
+{
+  "name": "serverless-stack-notes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maurogestoso/serverless-stack-notes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maurogestoso/serverless-stack-notes/issues"
+  },
+  "homepage": "https://github.com/maurogestoso/serverless-stack-notes#readme",
+  "devDependencies": {
+    "serverless-dotenv-plugin": "^2.1.1",
+    "serverless-iam-roles-per-function": "^2.0.2"
+  }
+}

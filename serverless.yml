@@ -1,4 +1,4 @@
-service: serverless-stack
+service: notes-app-api
 
 frameworkVersion: '>=1.28.0 <2.0.0'
 
@@ -10,6 +10,10 @@ provider:
   tags:
     projectName: ${self:provider}
 
+plugins:
+  - serverless-dotenv-plugin # Load .env as environment variables
+  - serverless-iam-roles-per-function
+
 custom:
   resourcePrefix: ${self:service}-${self:provider.stage}
 
@@ -20,18 +24,19 @@ package:
     - ./bin/**
 
 functions:
-  hello:
-    handler: bin/hello
+  create:
+    handler: bin/create
     events:
       - http:
-          path: hello
-          method: get
-  world:
-    handler: bin/world
-    events:
-      - http:
-          path: world
-          method: get
+          path: notes
+          method: post
+    environment:
+      NOTES_TABLE_NAME: !Ref NotesTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: !GetAtt NotesTable.Arn
 
 resources:
   Outputs:
