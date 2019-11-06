@@ -30,32 +30,31 @@ func (h handler) handleRequest(ctx context.Context, req events.APIGatewayProxyRe
 	var b requestBody
 	err := json.Unmarshal([]byte(req.Body), &b)
 	if err != nil {
-		return createErrorResponse(http.StatusBadRequest, err), nil
+		return createResponse(http.StatusBadRequest, err.Error()), err
 	}
 
 	userID := req.RequestContext.Identity.CognitoIdentityID
-	n, err := note.New(userID, b.Content)
+	n, err := note.New(userID, b.Content, b.Attachment)
 	if err != nil {
-		return createErrorResponse(http.StatusInternalServerError, err), nil
+		return createResponse(http.StatusInternalServerError, err.Error()), err
 	}
 
 	err = h.putNote(n)
 	if err != nil {
-		return createErrorResponse(http.StatusInternalServerError, err), nil
+		return createResponse(http.StatusInternalServerError, err.Error()), err
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusCreated,
-	}, nil
+	return createResponse(http.StatusCreated, ""), nil
 }
 
 type requestBody struct {
-	Content string `json:"content"`
+	Content    string `json:"content"`
+	Attachment string `json:"attachment"`
 }
 
-func createErrorResponse(statusCode int, err error) events.APIGatewayProxyResponse {
+func createResponse(statusCode int, body string) events.APIGatewayProxyResponse {
 	return events.APIGatewayProxyResponse{
 		StatusCode: statusCode,
-		Body:       err.Error(),
+		Body:       body,
 	}
 }
