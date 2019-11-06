@@ -1,60 +1,43 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"net/http"
+	"fmt"
+	"log"
 	"os"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/maurogestoso/serverless-stack-notes/api/create/handler"
 	"github.com/maurogestoso/serverless-stack-notes/note"
 )
 
 func main() {
-	tableName := os.Getenv("NOTES_TABLE_NAME")
-	region := os.Getenv("AWS_REGION")
-
-	ns := note.NewStore(tableName, region)
-	h := handler{
-		putNote: ns.PutNote,
-	}
-	lambda.Start(h.handleRequest)
-}
-
-type handler struct {
-	putNote note.Putter
-}
-
-func (h handler) handleRequest(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var b requestBody
-	err := json.Unmarshal([]byte(req.Body), &b)
+	conf, err := getConfig()
 	if err != nil {
-		return createResponse(http.StatusBadRequest, err.Error()), err
+		log.Fatal(err.Error())
+
 	}
 
-	userID := req.RequestContext.Identity.CognitoIdentityID
-	n, err := note.New(userID, b.Content, b.Attachment)
-	if err != nil {
-		return createResponse(http.StatusInternalServerError, err.Error()), err
-	}
+	ns := note.NewStore(conf.TableName, conf.Region)
+	h := handler.New(ns.PutNote)
 
-	err = h.putNote(n)
-	if err != nil {
-		return createResponse(http.StatusInternalServerError, err.Error()), err
-	}
-
-	return createResponse(http.StatusCreated, ""), nil
+	lambda.Start(h.HandleRequest)
 }
 
-type requestBody struct {
-	Content    string `json:"content"`
-	Attachment string `json:"attachment"`
+func getConfig() (configuration, error) {
+	tn, found := os.LookupEnv("NOTES_TABLE_NAME")
+	if !found {
+		return configuration{}, fmt.Errorf("could not find environment variable NOTES_TABLE_NAME")
+	}
+	r, found := os.LookupEnv("AWS_REGION")
+	if !found {
+		return configuration{}, fmt.Errorf("could not find environment variable AWS_REGION")
+	}
+	return configuration{
+		TableName: tn,
+		Region:    r,
+	}, nil
 }
 
-func createResponse(statusCode int, body string) events.APIGatewayProxyResponse {
-	return events.APIGatewayProxyResponse{
-		StatusCode: statusCode,
-		Body:       body,
-	}
+type configuration struct {
+	TableName, Region string
 }
